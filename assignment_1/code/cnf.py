@@ -3,13 +3,29 @@ from json import loads, dumps
 
 
 def cnf(tree):
-    # CODE REMOVED
+    n = len(tree)
+    if n == 2:
+        if isinstance(tree[0], str) and isinstance(tree[1], str):
+            pass
+        elif isinstance(tree[0], str) and isinstance(tree[1], list):
+            tree[0] = tree[0] + "+" + tree[1][0]
+            tree[1:] = tree[1][1:]
 
-    # MASTERS: INSERT YOUR CODE HERE!
+            cnf(tree)
+    if n == 3:
+        if isinstance(tree[0], str) and isinstance(tree[1], list) and isinstance(tree[2], list):
 
-    # BACHELORS: CODE ONLY NEEDED FOR ONE OF THE POSSIBLE VG TASKS
-
-    pass
+            cnf(tree[2])
+            cnf(tree[1])
+    if n > 3:
+        if isinstance(tree[0], str) and (isinstance(x, list) for x in [tree[1:]]):
+            new_lable = tree[0] + "|" + tree[1][0]
+            extral_list = list()
+            extral_list.append(new_lable)
+            extral_list.extend(tree[2:].copy())
+            tree[2:] = []
+            tree.append(extral_list)
+            cnf(tree)
 
 
 def is_cnf(tree):
@@ -37,11 +53,16 @@ if __name__ == "__main__":
     for line in stdin:
         tree = loads(line)
         sentence = words(tree)
+
         input = str(dumps(tree))
         cnf(tree)
         if is_cnf(tree) and words(tree) == sentence:
             print(dumps(tree))
         else:
+            print("debug1", is_cnf(tree), file=stderr)
+            print("debug2", words(tree) == sentence, file=stderr)
+            print("sentence1", sentence, file=stderr)
+            print("sentenc2", words(tree), file=stderr)
             print("Something went wrong!", file=stderr)
             print("Sentence: " + " ".join(sentence), file=stderr)
             print("Input: " + input, file=stderr)
