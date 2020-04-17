@@ -14,7 +14,6 @@ def cnf(tree):
             cnf(tree)
     if n == 3:
         if isinstance(tree[0], str) and isinstance(tree[1], list) and isinstance(tree[2], list):
-
             cnf(tree[2])
             cnf(tree[1])
     if n > 3:
@@ -59,10 +58,6 @@ if __name__ == "__main__":
         if is_cnf(tree) and words(tree) == sentence:
             print(dumps(tree))
         else:
-            print("debug1", is_cnf(tree), file=stderr)
-            print("debug2", words(tree) == sentence, file=stderr)
-            print("sentence1", sentence, file=stderr)
-            print("sentenc2", words(tree), file=stderr)
             print("Something went wrong!", file=stderr)
             print("Sentence: " + " ".join(sentence), file=stderr)
             print("Input: " + input, file=stderr)
