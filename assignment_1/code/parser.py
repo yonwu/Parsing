@@ -67,7 +67,7 @@ def CKY(pcfg, norm_words):
                 bp[(index - 1, index, grammar[0])] = (grammar[0], word_pair[1], index, index - 1)
 
     # Code for the dynamic programming part, where larger and larger subtrees are built
-    for max in range(2, len(norm_words)):
+    for max in range(2, len(norm_words)+1):
         for min in range(max - 2, -1, -1):
             for c in syntax_categores:
                 best = 0.0
@@ -84,27 +84,19 @@ def CKY(pcfg, norm_words):
                 scores[(min, max, c)] = best
                 bp[(min, max, c)] = back_pointer
 
-        # Below is one option for retrieving the best trees, assuming we only want trees with the "S" category
-        # This is a simplification, since not all sentences are of the category "S"
-        # The exact arguments also depends on how you implement your back-pointer chart.
-        # Below it is also assumed that it is called "bp"
-        # return backtrace(bp[0, n, "S"], bp)
+    # Below is one option for retrieving the best trees, assuming we only want trees with the "S" category
+    # This is a simplification, since not all sentences are of the category "S"
+    # The exact arguments also depends on how you implement your back-pointer chart.
+    # Below it is also assumed that it is called "bp"
+    # return backtrace(bp[0, n, "S"], bp)
     back = tuple()
-    if bp[0, len(norm_words) - 1, "S"] != ():
-        back = (0, len(norm_words) - 1, "S")
+    if bp[0, len(norm_words), "S"] != ():
+        back = (0, len(norm_words), "S")
     else:
         hightest_score = 0
         for x in scores.keys():
-            if scores[x] != 0 and x[1:] == (len(norm_words) - 1, 'S'):
+            if scores[x] != 0 and x[:2] == (0, len(norm_words)):
                 if scores[x] > hightest_score:
-                    hightest_score = scores[x]
-                    back = x
-            elif scores[x] != 0 and x[1:] == (len(norm_words) - 2, 'S'):
-                if scores[x] > hightest_score:
-                    hightest_score = scores[x]
-                    back = x
-            elif scores[x] != 0 and x[1] == len(norm_words) -1:
-                if scores[x] > hightest_score :
                     hightest_score = scores[x]
                     back = x
 
@@ -148,3 +140,5 @@ if __name__ == "__main__":
         tree = parser.parse(sentence)
         print(dumps(tree))
     print("Time: (%.2f)s\n" % (time() - start), file=stderr)
+
+
