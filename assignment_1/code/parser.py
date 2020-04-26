@@ -13,6 +13,8 @@ from pprint import pprint
 from pcfg import PCFG
 from tokenizer import PennTreebankTokenizer
 
+import multiprocessing
+
 
 def argmax(lst):
     return max(lst) if lst else (0.0, None)
@@ -134,6 +136,10 @@ class Parser:
         return tree
 
 
+def parsing(sentence):
+    return sentence[0], parser.parse(sentence[1])
+
+
 def display_tree(tree):
     pprint(tree)
 
@@ -156,10 +162,18 @@ if __name__ == "__main__":
 
     print("Parsing sentences ...", file=stderr)
     sentences = [sentence.strip() for sentence in stdin]
+    sentences_with_index = [(index, sentence) for (index, sentence) in enumerate(sentences)]
 
-    for sentence in stdin:
-        print("processing one sentence: ", file=stderr)
-        tree = parser.parse(sentence)
-        print(dumps(tree))
+    multi = True
+    if not multi:
+        for sentence in sentences:
+            print("processing one sentence: ", file=stderr)
+            tree = parser.parse(sentence)
+            print(dumps(tree))
         print("Time: (%.2f)s\n" % (time() - start), file=stderr)
-    print("Time: (%.2f)s\n" % (time() - start), file=stderr)
+    else:
+        pool = multiprocessing.Pool()
+        trees_with_index = pool.map(parsing, sentences_with_index)
+        print("Time: (%.2f)s\n" % (time() - start), file=stderr)
+        for tree in sorted(trees_with_index, key=lambda x: x[0]):
+            print(dumps(tree[1]))
