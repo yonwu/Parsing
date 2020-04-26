@@ -97,7 +97,7 @@ def CKY(pcfg_info, norm_words):
                 if scores[x] > hightest_score:
                     hightest_score = scores[x]
                     back = x
-
+    print("processing sentence ...", file=stderr)
     return backtrace(bp[back], bp)
 
 
