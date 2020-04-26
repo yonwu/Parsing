@@ -46,8 +46,9 @@ def CKY(pcfg, norm_words):
     #       if it is a known word according to the grammar, or the string _RARE_.
     #       Thus, norm should be used for grammar lookup but word should be used
     #       in the output tree.
-
+    print("stage 1: ", file=stderr)
     # Initialize your charts (for scores and backpointers)
+
     grammar_preterminal = pcfg.q1
     grammar_binary = pcfg.q2
 
@@ -58,6 +59,18 @@ def CKY(pcfg, norm_words):
     for key in grammar_binary.keys():
         syntax_categores.add(key[0])
 
+    grammar_help_table = {}
+    for c in syntax_categores:
+        grammar_help_table[c] = list()
+        for grammar in grammar_binary.keys():
+            if grammar[0] == c:
+                grammar_help_table[c].append((grammar[1], grammar[-1]))
+
+    print("size: ", len(grammar_help_table), file=stderr)
+    for x in grammar_help_table.values():
+        print("length, ", len(x), file=stderr)
+
+    print("stage 2: ", file=stderr)
     # Code for adding the words to the cahrt
     for index, word_pair in enumerate(norm_words, 1):
         word_norm = word_pair[0]
@@ -66,21 +79,21 @@ def CKY(pcfg, norm_words):
                 scores[(index - 1, index, grammar[0])] = grammar_preterminal[grammar]
                 bp[(index - 1, index, grammar[0])] = (grammar[0], word_pair[1], index, index - 1)
 
+    print("stage 3: ", file=stderr)
     # Code for the dynamic programming part, where larger and larger subtrees are built
-    for max in range(2, len(norm_words)+1):
+    for max in range(2, len(norm_words) + 1):
         for min in range(max - 2, -1, -1):
             for c in syntax_categores:
                 best = 0.0
                 back_pointer = tuple()
-                for grammar in grammar_binary.keys():
-                    if grammar[0] == c:
-                        for mid in range(min + 1, max):
-                            t1 = scores[(min, mid, grammar[1])]
-                            t2 = scores[(mid, max, grammar[-1])]
-                            candidate = t1 * t2 * grammar_binary[grammar]
-                            if candidate > best:
-                                best = candidate
-                                back_pointer = (grammar[0], grammar[1], grammar[-1], min, mid, max)
+                for grammar in grammar_help_table[c]:
+                    for mid in range(min + 1, max):
+                        t1 = scores[(min, mid, grammar[0])]
+                        t2 = scores[(mid, max, grammar[-1])]
+                        candidate = t1 * t2 * grammar_binary[(c, grammar[0], grammar[-1])]
+                        if candidate > best:
+                            best = candidate
+                            back_pointer = (c, grammar[0], grammar[-1], min, mid, max)
                 scores[(min, max, c)] = best
                 bp[(min, max, c)] = back_pointer
 
@@ -140,5 +153,3 @@ if __name__ == "__main__":
         tree = parser.parse(sentence)
         print(dumps(tree))
     print("Time: (%.2f)s\n" % (time() - start), file=stderr)
-
-
