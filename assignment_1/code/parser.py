@@ -37,7 +37,7 @@ def backtrace(back, bp):
 # Extract the tree from the backpointers
 
 
-def CKY(pcfg, norm_words):
+def CKY(pcfg_info, norm_words):
     # ADD YOUR CODE HERE
     # IMPLEMENT CKY
 
@@ -46,31 +46,15 @@ def CKY(pcfg, norm_words):
     #       if it is a known word according to the grammar, or the string _RARE_.
     #       Thus, norm should be used for grammar lookup but word should be used
     #       in the output tree.
-    print("stage 1: ", file=stderr)
     # Initialize your charts (for scores and backpointers)
-
-    grammar_preterminal = pcfg.q1
-    grammar_binary = pcfg.q2
+    grammar_preterminal = pcfg_info[0]
+    grammar_binary = pcfg_info[1]
+    syntax_categores = pcfg_info[2]
+    binary_helper = pcfg_info[3]
 
     scores = defaultdict(float)
     bp = defaultdict(tuple)
 
-    syntax_categores = set([])
-    for key in grammar_binary.keys():
-        syntax_categores.add(key[0])
-
-    grammar_help_table = {}
-    for c in syntax_categores:
-        grammar_help_table[c] = list()
-        for grammar in grammar_binary.keys():
-            if grammar[0] == c:
-                grammar_help_table[c].append((grammar[1], grammar[-1]))
-
-    print("size: ", len(grammar_help_table), file=stderr)
-    for x in grammar_help_table.values():
-        print("length, ", len(x), file=stderr)
-
-    print("stage 2: ", file=stderr)
     # Code for adding the words to the cahrt
     for index, word_pair in enumerate(norm_words, 1):
         word_norm = word_pair[0]
@@ -79,14 +63,13 @@ def CKY(pcfg, norm_words):
                 scores[(index - 1, index, grammar[0])] = grammar_preterminal[grammar]
                 bp[(index - 1, index, grammar[0])] = (grammar[0], word_pair[1], index, index - 1)
 
-    print("stage 3: ", file=stderr)
     # Code for the dynamic programming part, where larger and larger subtrees are built
     for max in range(2, len(norm_words) + 1):
         for min in range(max - 2, -1, -1):
             for c in syntax_categores:
                 best = 0.0
                 back_pointer = tuple()
-                for grammar in grammar_help_table[c]:
+                for grammar in binary_helper[c]:
                     for mid in range(min + 1, max):
                         t1 = scores[(min, mid, grammar[0])]
                         t2 = scores[(mid, max, grammar[-1])]
@@ -113,7 +96,6 @@ def CKY(pcfg, norm_words):
                     hightest_score = scores[x]
                     back = x
 
-    print("processing: ", file=stderr)
     return backtrace(bp[back], bp)
 
 
@@ -121,13 +103,33 @@ class Parser:
     def __init__(self, pcfg):
         self.pcfg = pcfg
         self.tokenizer = PennTreebankTokenizer()
+        self.pcfg_info = list()
+
+    def extract_info_from_pcfg(self):
+        grammar_preterminal = self.pcfg.q1
+        grammar_binary = self.pcfg.q2
+
+        syntax_categores = set([])
+        for key in grammar_binary.keys():
+            syntax_categores.add(key[0])
+        binary_helper = {}
+        for c in syntax_categores:
+            binary_helper[c] = list()
+            for grammar in grammar_binary.keys():
+                if grammar[0] == c:
+                    binary_helper[c].append((grammar[1], grammar[-1]))
+
+        self.pcfg_info.append(grammar_preterminal)
+        self.pcfg_info.append(grammar_binary)
+        self.pcfg_info.append(syntax_categores)
+        self.pcfg_info.append(binary_helper)
 
     def parse(self, sentence):
         words = self.tokenizer.tokenize(sentence)
         norm_words = []
         for word in words:  # rare words normalization + keep word
             norm_words.append((self.pcfg.norm_word(word), word))
-        tree = CKY(self.pcfg, norm_words)
+        tree = CKY(self.pcfg_info, norm_words)
         tree[0] = tree[0].split("|")[0]
         return tree
 
@@ -148,8 +150,16 @@ if __name__ == "__main__":
     pcfg = PCFG()
     pcfg.load_model(grammar_file)
     parser = Parser(pcfg)
+    # Add one step out of real parsing to extract information from pcfg which takes 13 seconds
+    parser.extract_info_from_pcfg()
+    print("Time: (%.2f)s\n" % (time() - start), file=stderr)
+
     print("Parsing sentences ...", file=stderr)
+    sentences = [sentence.strip() for sentence in stdin]
+
     for sentence in stdin:
+        print("processing one sentence: ", file=stderr)
         tree = parser.parse(sentence)
         print(dumps(tree))
+        print("Time: (%.2f)s\n" % (time() - start), file=stderr)
     print("Time: (%.2f)s\n" % (time() - start), file=stderr)
