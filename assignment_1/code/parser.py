@@ -39,7 +39,7 @@ def backtrace(back, bp):
 # Extract the tree from the backpointers
 
 
-def CKY(pcfg_info, norm_words):
+def CKY(pcfg, norm_words):
     # ADD YOUR CODE HERE
     # IMPLEMENT CKY
 
@@ -49,10 +49,10 @@ def CKY(pcfg_info, norm_words):
     #       Thus, norm should be used for grammar lookup but word should be used
     #       in the output tree.
     # Initialize your charts (for scores and backpointers)
-    grammar_preterminal = pcfg_info[0]
-    grammar_binary = pcfg_info[1]
-    syntax_categores = pcfg_info[2]
-    binary_helper = pcfg_info[3]
+    grammar_preterminal = pcfg.q1
+    grammar_binary = pcfg.q2
+    syntax_categores = pcfg.N
+    binary_helper = pcfg.binary_rules
 
     scores = defaultdict(float)
     bp = defaultdict(tuple)
@@ -105,33 +105,13 @@ class Parser:
     def __init__(self, pcfg):
         self.pcfg = pcfg
         self.tokenizer = PennTreebankTokenizer()
-        self.pcfg_info = list()
-
-    def extract_info_from_pcfg(self):
-        grammar_preterminal = self.pcfg.q1
-        grammar_binary = self.pcfg.q2
-
-        syntax_categores = set([])
-        for key in grammar_binary.keys():
-            syntax_categores.add(key[0])
-        binary_helper = {}
-        for c in syntax_categores:
-            binary_helper[c] = list()
-            for grammar in grammar_binary.keys():
-                if grammar[0] == c:
-                    binary_helper[c].append((grammar[1], grammar[-1]))
-
-        self.pcfg_info.append(grammar_preterminal)
-        self.pcfg_info.append(grammar_binary)
-        self.pcfg_info.append(syntax_categores)
-        self.pcfg_info.append(binary_helper)
 
     def parse(self, sentence):
         words = self.tokenizer.tokenize(sentence)
         norm_words = []
         for word in words:  # rare words normalization + keep word
             norm_words.append((self.pcfg.norm_word(word), word))
-        tree = CKY(self.pcfg_info, norm_words)
+        tree = CKY(self.pcfg, norm_words)
         tree[0] = tree[0].split("|")[0]
         return tree
 
@@ -156,9 +136,6 @@ if __name__ == "__main__":
     pcfg = PCFG()
     pcfg.load_model(grammar_file)
     parser = Parser(pcfg)
-    # Add one step out of real parsing to extract information from pcfg which takes 13 seconds
-    parser.extract_info_from_pcfg()
-    print("Time: (%.2f)s\n" % (time() - start), file=stderr)
 
     print("Parsing sentences ...", file=stderr)
     sentences = [sentence.strip() for sentence in stdin]
