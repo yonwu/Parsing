@@ -1,8 +1,16 @@
 import sys
 
-SH = 0; RE = 1; RA = 2; LA = 3;
+SH = 0;
+RE = 1;
+RA = 2;
+LA = 3;
 
-labels = ["nsubj", "csubj", "nsubjpass", "csubjpass", "dobj", "iobj", "ccomp", "xcomp", "nmod", "advcl", "advmod", "neg", "aux", "auxpass", "cop", "mark", "discourse", "vocative", "expl", "nummod", "acl", "amod", "appos", "det", "case", "compound", "mwe", "goeswith", "name", "foreign", "conj", "cc", "punct", "list", "parataxis", "remnant", "dislocated", "reparandum", "root", "dep", "nmod:npmod", "nmod:tmod", "nmod:poss", "acl:relcl", "cc:preconj", "compound:prt"]
+labels = ["nsubj", "csubj", "nsubjpass", "csubjpass", "dobj", "iobj", "ccomp", "xcomp", "nmod", "advcl", "advmod",
+          "neg", "aux", "auxpass", "cop", "mark", "discourse", "vocative", "expl", "nummod", "acl", "amod", "appos",
+          "det", "case", "compound", "mwe", "goeswith", "name", "foreign", "conj", "cc", "punct", "list", "parataxis",
+          "remnant", "dislocated", "reparandum", "root", "dep", "nmod:npmod", "nmod:tmod", "nmod:poss", "acl:relcl",
+          "cc:preconj", "compound:prt"]
+
 
 def read_sentences():
     sentence = []
@@ -15,7 +23,8 @@ def read_sentences():
         elif line[0] != "#":
             token = line.split("\t")
             sentence.append(token)
-    return(sentences)
+    return (sentences)
+
 
 def attach_orphans(arcs, n):
     attached = []
@@ -24,6 +33,7 @@ def attach_orphans(arcs, n):
     for i in range(1, n):
         if not i in attached:
             arcs.append((0, i, "root"))
+
 
 def print_tab(arcs, words, tags):
     hs = {}
@@ -34,7 +44,8 @@ def print_tab(arcs, words, tags):
     for i in range(1, len(words)):
         print("\t".join([words[i], tags[i], str(hs[i]), ls[i]]))
     print()
-        
+
+
 def print_tree(root, arcs, words, indent):
     if root == 0:
         print(" ".join(words[1:]))
@@ -43,14 +54,17 @@ def print_tree(root, arcs, words, indent):
         print(indent + l + "(" + words[h] + "_" + str(h) + ", " + words[d] + "_" + str(d) + ")")
         print_tree(d, arcs, words, indent + "  ")
 
+
 def transition(trans, stack, buffer, arcs):
     if isinstance(trans, int):
         if trans == SH:
             stack.insert(0, buffer.pop(0))
     # add code for missing transitions: RE, (RA, label), (LA, label)
 
+
 def oracle(stack, buffer, heads, labels):
     return SH
+
 
 def parse(sentence):
     sentence.insert(0, ("root", "_", "0", "_"))
@@ -69,6 +83,7 @@ def parse(sentence):
         print_tab(arcs, words, tags)
     else:
         print_tree(0, arcs, words, "")
+
 
 if __name__ == "__main__":
     tab_format = False

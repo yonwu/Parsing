@@ -1,5 +1,9 @@
-SH = 0; RE = 1; RA = 2; LA = 3;
+SH = 0;
+RE = 1;
+RA = 2;
+LA = 3;
 labels = ["det", "nsubj", "case", "nmod", "root"]
+
 
 def attach_orphans(arcs, n):
     attached = []
@@ -9,6 +13,7 @@ def attach_orphans(arcs, n):
         if not i in attached:
             arcs.append((0, i, "root"))
 
+
 def print_tree(root, arcs, words, indent):
     if root == 0:
         print(" ".join(words[1:]))
@@ -17,21 +22,25 @@ def print_tree(root, arcs, words, indent):
         print(indent + l + "(" + words[h] + "_" + str(h) + ", " + words[d] + "_" + str(d) + ")")
         print_tree(d, arcs, words, indent + "  ")
 
+
 def transition(trans, stack, buffer, arcs):
     if isinstance(trans, int):
         if trans == SH:
             stack.insert(0, buffer.pop(0))
     # add code for missing transitions: RE, (RA, label), (LA, label)
 
+
 def parse():
     words = "root the cat is on the mat today".split()
     stack = [0]
     buffer = [x for x in range(1, len(words))]
     arcs = []
-    for trans in [SH, (LA, "det"), SH, (LA, "nsubj"), SH, SH, SH, (LA, "det"), (LA, "case"), (RA, "nmod"), RE, (RA, "nmod")]:
+    for trans in [SH, (LA, "det"), SH, (LA, "nsubj"), SH, SH, SH, (LA, "det"), (LA, "case"), (RA, "nmod"), RE,
+                  (RA, "nmod")]:
         transition(trans, stack, buffer, arcs)
     attach_orphans(arcs, len(words))
     print_tree(0, arcs, words, "")
+
 
 if __name__ == "__main__":
     parse()
