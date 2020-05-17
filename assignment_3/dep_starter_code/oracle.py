@@ -59,7 +59,22 @@ def transition(trans, stack, buffer, arcs):
     if isinstance(trans, int):
         if trans == SH:
             stack.insert(0, buffer.pop(0))
-    # add code for missing transitions: RE, (RA, label), (LA, label)
+        # add code for missing transitions: RE, (RA, label), (LA, label)
+        elif trans == RE:
+            stack.pop(0)
+    elif isinstance(trans, tuple):
+        if trans[0] == RA and trans[1] in labels:
+            top = stack[0]
+            next = buffer[0]
+            label = trans[1]
+            arcs.append((top, next, label))
+            stack.insert(0, buffer.pop(0))
+        elif trans[0] == LA and trans[1] in labels:
+            top = stack[0]
+            next = buffer[0]
+            label = trans[1]
+            arcs.append((next, top, label))
+            stack.pop(0)
 
 
 def oracle(stack, buffer, heads, labels):
