@@ -1,7 +1,9 @@
-she	PRON	2	nsubj
-gave	VERB	0	root
-the	DET	4	det
-cat	NOUN	2	iobj
-some	DET	6	det
-food	NOUN	2	dobj
+Holy	ADJ	2	discourse
+cow	NOUN	4	discourse
+was	VERB	7	cop
+that	PRON	7	nsubj
+a	DET	7	det
+delicious	ADJ	7	amod
+meal	NOUN	0	root
+.	PUNCT	4	punct
 

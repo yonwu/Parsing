@@ -1,5 +1,6 @@
 import sys
 
+
 SH = 0;
 RE = 1;
 RA = 2;
@@ -9,7 +10,7 @@ labels = ["nsubj", "csubj", "nsubjpass", "csubjpass", "dobj", "iobj", "ccomp", "
           "neg", "aux", "auxpass", "cop", "mark", "discourse", "vocative", "expl", "nummod", "acl", "amod", "appos",
           "det", "case", "compound", "mwe", "goeswith", "name", "foreign", "conj", "cc", "punct", "list", "parataxis",
           "remnant", "dislocated", "reparandum", "root", "dep", "nmod:npmod", "nmod:tmod", "nmod:poss", "acl:relcl",
-          "cc:preconj", "compound:prt"]
+          "cc:preconj", "compound:prt", "det:predet"]
 
 
 def read_sentences():
@@ -77,8 +78,31 @@ def transition(trans, stack, buffer, arcs):
             stack.pop(0)
 
 
+def check_k(i, j, labels, gold):
+    for k in range(1, i):
+        if (k, labels[j], j) in gold or (j, labels[k], k) in gold:
+            return True
+    else:
+        return False
+
+
 def oracle(stack, buffer, heads, labels):
-    return SH
+    gold_a = []
+    for index, head in enumerate(heads):
+        gold_a.append((head, labels[index], index))
+    i = stack[0]
+    j = buffer[0]
+    print(gold_a)
+    print(j, labels[i], i)
+    print(i, labels[j], j)
+    if (j, labels[i], i) in gold_a:
+        return LA, labels[i]
+    elif (i, labels[j], j) in gold_a:
+        return RA, labels[j]
+    elif check_k(i, j, labels, gold_a):
+        return RE
+    else:
+        return SH
 
 
 def parse(sentence):
@@ -92,6 +116,7 @@ def parse(sentence):
     arcs = []
     while buffer:
         trans = oracle(stack, buffer, heads, labels)
+        print("trans", trans)
         transition(trans, stack, buffer, arcs)
     attach_orphans(arcs, len(words))
     if tab_format:
