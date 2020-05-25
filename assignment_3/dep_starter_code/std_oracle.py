@@ -1,8 +1,6 @@
 import sys
 
-
 SH = 0;
-RE = 1;
 RA = 2;
 LA = 3;
 
@@ -58,48 +56,51 @@ def print_tree(root, arcs, words, indent):
 
 def transition(trans, stack, buffer, arcs):
     if isinstance(trans, int):
-        if trans == SH:
+        if trans == SH and len(buffer) > 0:
             stack.insert(0, buffer.pop(0))
         # add code for missing transitions: RE, (RA, label), (LA, label)
-        elif trans == RE:
-            stack.pop(0)
     elif isinstance(trans, tuple):
         if trans[0] == RA and trans[1] in labels:
             top = stack[0]
-            next = buffer[0]
+            second = stack[1]
             label = trans[1]
-            arcs.append((top, next, label))
-            stack.insert(0, buffer.pop(0))
+            arcs.append((second, top, label))
+            stack.pop(0)
         elif trans[0] == LA and trans[1] in labels:
             top = stack[0]
-            next = buffer[0]
+            second = stack[1]
             label = trans[1]
-            arcs.append((next, top, label))
-            stack.pop(0)
+            arcs.append((top, second, label))
+            stack.pop(1)
 
 
-def check_k(i, j, labels, gold):
-    for k in range(1, i):
-        if (k, labels[j], j) in gold or (j, labels[k], k) in gold:
-            return True
+def check_k(i, buffer, labels, gold):
+    for k in range(0, len(buffer)):
+        k_buffer = buffer[k]
+
+        if (i, labels[k_buffer], k_buffer) in gold:
+            return False
     else:
-        return False
+        return True
 
 
 def oracle(stack, buffer, heads, labels):
     gold_a = []
     for index, head in enumerate(heads):
         gold_a.append((head, labels[index], index))
-    i = stack[0]
-    j = buffer[0]
-    if (j, labels[i], i) in gold_a:
-        return LA, labels[i]
-    elif (i, labels[j], j) in gold_a:
-        return RA, labels[j]
-    elif check_k(i, j, labels, gold_a):
-        return RE
+
+    if len(stack) > 1:
+        i = stack[0]
+        j = stack[1]
+        if (i, labels[j], j) in gold_a:
+            return LA, labels[j]
+        elif (j, labels[i], i) in gold_a and check_k(i, buffer, labels, gold_a):
+            return RA, labels[i]
+        else:
+            return SH
     else:
-        return SH
+        if len(buffer) > 0:
+            return SH
 
 
 def parse(sentence):

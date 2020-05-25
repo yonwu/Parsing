@@ -1,9 +1,9 @@
-Holy	ADJ	2	discourse
-cow	NOUN	4	discourse
-was	VERB	7	cop
-that	PRON	7	nsubj
-a	DET	7	det
-delicious	ADJ	7	amod
-meal	NOUN	0	root
-.	PUNCT	4	punct
+Anybody	NOUN	2	nsubj
+up	ADV	0	root
+for	ADP	5	case
+happy	ADJ	5	amod
+hour	NOUN	2	nmod
+after	ADP	7	case
+work	NOUN	5	nmod
+?	PUNCT	1	punct
 
